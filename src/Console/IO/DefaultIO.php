@@ -118,6 +118,11 @@ class DefaultIO extends Base
         return $stdIn;
     }
 
+    public function getStandardInputResource()
+    {
+        return $this->stdIn;
+    }
+
     /**
      * {@inheritDoc}
      */

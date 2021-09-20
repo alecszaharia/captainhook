@@ -54,4 +54,14 @@ abstract class Base implements IO
     {
         return [];
     }
+
+
+    /**
+     * Returns the file pointer resource of the input
+     *
+     * @return null
+     */
+    public function getStandardInputResource() {
+        return null;
+    }
 }

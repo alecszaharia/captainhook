@@ -15,8 +15,10 @@ use CaptainHook\App\Config;
 use CaptainHook\App\Console\IO;
 use CaptainHook\App\Exception;
 use CaptainHook\App\Runner\Action\Cli\Command\Formatter;
+use SebastianFeldmann\Cli\Command\Result;
 use SebastianFeldmann\Cli\Processor\Symfony as Processor;
 use SebastianFeldmann\Git\Repository;
+use Symfony\Component\Process\Process;
 
 /**
  * Class Cli
@@ -40,7 +42,6 @@ class Cli
      */
     public function execute(Config $config, IO $io, Repository $repository, Config\Action $action): void
     {
-        $processor    = new Processor();
         $cmdOriginal  = $action->getAction();
         $cmdFormatted = $this->formatCommand($config, $repository, $cmdOriginal, $io->getArguments());
 
@@ -53,7 +54,25 @@ class Cli
             );
         }
 
-        $result = $processor->run($cmdFormatted);
+        // the else (:) variant is there to keep backwards compatibility with previous symfony versions
+        // and is only getting executed in those. This is the reason why the Process constructor is
+        // given a string instead of an array. The whole ternary can be removed if Symfony versions
+        // below 4.2 are not supported anymore.
+        $process = method_exists(Process::class, 'fromShellCommandline')
+            ? Process::fromShellCommandline($cmdFormatted)
+            : new Process($cmdFormatted); // @phpstan-ignore-line
+        $process->setTimeout(null);
+        $process->setInput($io->getStandardInputResource());
+        $process->run();
+        $result = new Result(
+            $cmdFormatted,
+            $process->getExitCode(),
+            $process->getOutput(),
+            $process->getErrorOutput(),
+            '',
+            [0]
+        );
+
         $output = '';
 
         if (!empty($result->getStdOut())) {

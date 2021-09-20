@@ -53,6 +53,13 @@ interface IO
     public function getStandardInput(): array;
 
     /**
+     *  Returns the file pointer resource of the input
+     *
+     * @return resource|null
+     */
+    public function getStandardInputResource();
+
+    /**
      * Is this input interactive?
      *
      * @return bool
